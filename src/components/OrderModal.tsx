@@ -140,7 +140,6 @@ export const OrderModal = ({ open, onOpenChange, mode }: OrderModalProps) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        mode: 'no-cors',
         body: JSON.stringify({
           ...orderDetails,
           timestamp: new Date().toISOString(),
@@ -148,23 +147,41 @@ export const OrderModal = ({ open, onOpenChange, mode }: OrderModalProps) => {
         }),
       });
 
+      let responseMessage = 'Thank you! Your order has been submitted successfully.';
+      
+      if (response.ok) {
+        try {
+          const responseData = await response.text();
+          if (responseData && responseData.trim()) {
+            responseMessage = responseData;
+          }
+        } catch (e) {
+          // If response parsing fails, use default message
+        }
+      }
+
       toast({
         title: "Order Submitted!",
-        description: "Your order has been sent successfully. You will receive a confirmation soon.",
+        description: "Your order has been sent successfully.",
       });
 
       setMessages(prev => [...prev, { 
         type: 'bot', 
-        text: 'Thank you! Your order has been submitted successfully. You will receive a payment link and confirmation details shortly.' 
+        text: responseMessage
       }]);
       
-      setTimeout(() => onOpenChange(false), 3000);
+      setTimeout(() => onOpenChange(false), 5000);
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to submit order. Please try again.",
         variant: "destructive",
       });
+      
+      setMessages(prev => [...prev, { 
+        type: 'bot', 
+        text: 'Sorry, there was an error submitting your order. Please try again.' 
+      }]);
     } finally {
       setIsLoading(false);
     }
