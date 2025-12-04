@@ -1,4 +1,4 @@
-# Welcome to your Lovable project
+# Conversational AI Order Assistant
 
 ## Project info
 
