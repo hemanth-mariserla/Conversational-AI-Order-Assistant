@@ -1,0 +1,580 @@
+{
+  "name": "Conversational Order System",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "27bd26b5-0c53-4813-a356-bad56b1f3b10",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -144,
+        0
+      ],
+      "id": "d8bf6d1f-6849-457a-b12a-3b0496e4dae9",
+      "name": "Webhook",
+      "webhookId": "27bd26b5-0c53-4813-a356-bad56b1f3b10"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Here's the corrected prompt:\n\nExtract order details from the following input, ensuring the output is a valid JSON object. Do not include any markdown, backticks, or additional explanations.\nThe intent, customer name, address, phone number, and email are provided as follows:\nProduct: \"{{ $json.body.product }}\"\nQuantity: \"{{ $json.body.quantity }}\"\nColor: \"{{ $json.body.color }}\"\nSize: \"{{ $json.body.size }}\"\nName: \"{{ $json.body.name }}\"\nAddress: \"{{ $json.body.address }}\"\nPhone: \"{{ $json.body.phone }}\"\nEmail: \"{{ $json.body.email }}\"\n\nReturn the extracted information in the following JSON format:\n[\n{\n  \"Quantity\": number,\n  \"Product\": string,\n  \"Color\": string | null,\n  \"Size\": string | null,\n  \"Name\": string,\n  \"Address\": string,\n  \"Phone\": number,\n  \"Email\": string\n}\n]",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        384,
+        0
+      ],
+      "id": "9d9597a8-db50-4c52-aee2-4a99910dd478",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1OK_HvGGTKUXVYt5juzfTlPU1qN86v2aNVvhbW-NqiN0",
+          "mode": "list",
+          "cachedResultName": "Products",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1OK_HvGGTKUXVYt5juzfTlPU1qN86v2aNVvhbW-NqiN0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1OK_HvGGTKUXVYt5juzfTlPU1qN86v2aNVvhbW-NqiN0/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Color",
+              "lookupValue": "={{ $json[\"Color\"] ? $json[\"Color\"].toString() : \"\" }}"
+            },
+            {
+              "lookupColumn": "Size",
+              "lookupValue": "={{ $json[\"Size\"] ? $json[\"Size\"].toString() : \"\" }}"
+            }
+          ]
+        },
+        "combineFilters": "OR",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1024,
+        0
+      ],
+      "id": "19ac0ebc-83fa-44e1-b3e1-36902cf3dff4",
+      "name": "Get row(s) in sheet",
+      "alwaysOutputData": true,
+      "executeOnce": false,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "maUVg3K23wZLROPk",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d6f40787-6601-429f-bc16-9ad1b1d68cbb",
+              "leftValue": "=",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1216,
+        0
+      ],
+      "id": "9804b956-e1aa-4f01-a987-811369baf5a4",
+      "name": "If",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1qGBavUMOAi0ZFMXQGJ8eGQpDxYrnTI0nRb3HyXfmk-Y",
+          "mode": "list",
+          "cachedResultName": "Orders",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1qGBavUMOAi0ZFMXQGJ8eGQpDxYrnTI0nRb3HyXfmk-Y/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1qGBavUMOAi0ZFMXQGJ8eGQpDxYrnTI0nRb3HyXfmk-Y/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Address": "={{ $('AI Transform').item.json.Address }}",
+            "Status": "Pending",
+            "Order ID": "={{ $json.ID }}",
+            "Name": "={{ $('AI Transform').item.json.Name }}",
+            "Phone": "={{ $('AI Transform').item.json.Phone }}",
+            "Email": "={{ $('AI Transform').item.json.Email }}",
+            "Product": "={{ $('AI Transform').item.json.Product }}",
+            "Quantity": "={{ $('AI Transform').item.json.Quantity }}",
+            "Total": "={{ $json.Price * $('AI Transform').item.json.Quantity }}",
+            "Price of each quantity": "={{ $json.Price }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Order ID",
+              "displayName": "Order ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Address",
+              "displayName": "Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Product",
+              "displayName": "Product",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Quantity",
+              "displayName": "Quantity",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Price of each quantity",
+              "displayName": "Price of each quantity",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Total",
+              "displayName": "Total",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1488,
+        -112
+      ],
+      "id": "fb39dfcd-0b52-44a2-a13f-9cff949d661d",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "maUVg3K23wZLROPk",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.Email }}",
+        "subject": "=Order Confirmation #{{ $json['Order ID'] }}",
+        "emailType": "text",
+        "message": "=Dear {{ $json.Name }},\n\nWe are pleased to confirm your booking for {{ $json.Product }}. Below are the details of your booking:\n\nBooking ID: {{ $json['Order ID'] }}\nProduct Name: {{ $json.Product }}\nQuantity: {{ $json.Quantity }}\nPrice of each quantity: {{ $json['Price of each quantity'] }}\nTotal Amount: {{ $json.Total }}\nDate of Booking: {{ $('Code').item.json.bookingDate }}\nExpected Delivery/Pickup: {{ $('Code').item.json.deliveryDate }}\n\nIf you have any questions or need further assistance, please feel free to contact us at support@yourcompany.com / +91-7997207751.\n\nThank you for choosing [Your Company Name]. We look forward to serving you.\n\nBest regards,\nHemanth Kumar,\nCheif Managing\nCustomer Support Executive\nTechStore Pvt. Ltd.\nEmail: support@yourcompany.com | Phone: +91-7997207751",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1632,
+        -112
+      ],
+      "id": "3d1d6e60-185a-4400-b03e-b6cf6da133f1",
+      "name": "Send a message",
+      "webhookId": "4efa8517-7472-43af-9207-8e6298dba2e3",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "S48IQTN9OQLXYOgf",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"success\",\n  \"orderId\": \"{{ $runTime }}\",\n  \"paymentUrl\": \"{{ $('Razorpay').item.json.short_url }}\",\n  \"total\": \"{{ $('Google Sheets').item.json[0].Price * $('AI Agent').item.json.quantity }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1808,
+        -112
+      ],
+      "id": "33d9e186-131e-4752-afca-58ad2e0e0fcd",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Webhook').item.json.email }}",
+        "subject": "Order Failed - Product Not Found",
+        "emailType": "text",
+        "message": "=Hi {{ $('Webhook').item.json.name }},  Unfortunately, the product you requested is not available in our system.  Please check the product name and try again.  Regards,   Order Support Team.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1504,
+        112
+      ],
+      "id": "911f5ac1-5a21-4aa2-8cda-ef5ca9608dd0",
+      "name": "Send a message1",
+      "webhookId": "ad57a104-9ecd-43a6-85ce-62aa5d69792a",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "S48IQTN9OQLXYOgf",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"error\",\n  \"message\": \"Product not found. Please try another description.\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1664,
+        112
+      ],
+      "id": "8b960c94-f07e-4913-a5f1-6276e843bcac",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        320,
+        240
+      ],
+      "id": "7cdebd00-ae87-4cd4-af44-58dbea296f2c",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "JBFiF0Hkoif4Xg82",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "instructions": "// Step 1: Get raw output\nlet raw = $json.output;\n\n// Step 2: Remove Markdown ```json and ```\nraw = raw.replace(/```json/g, '').replace(/```/g, '').trim();\n\n// Step 3: Parse string into JSON array\nconst parsedArray = JSON.parse(raw);\n\n// Step 4: Convert each object into a proper n8n item with json\nreturn parsedArray.map(item => ({ json: item }));\n",
+        "codeGeneratedForPrompt": "// Step 1: Get raw output\nlet raw = $json.output;\n\n// Step 2: Remove Markdown ```json and ```\nraw = raw.replace(/```json/g, '').replace(/```/g, '').trim();\n\n// Step 3: Parse string into JSON array\nconst parsedArray = JSON.parse(raw);\n\n// Step 4: Convert each object into a proper n8n item with json\nreturn parsedArray.map(item => ({ json: item }));\n",
+        "jsCode": "let raw = $input.all()[0]?.json?.output;\n\nraw = raw\n  .replace(/```json/g, \"\")\n  .replace(/```/g, \"\")\n  .trim();\n\nconst parsedArray = JSON.parse(raw);\n\nreturn parsedArray.map((item) => ({ json: item }));\n"
+      },
+      "type": "n8n-nodes-base.aiTransform",
+      "typeVersion": 1,
+      "position": [
+        736,
+        0
+      ],
+      "id": "4fd5f9e3-8bac-4410-a04e-90abe8b4adb8",
+      "name": "AI Transform"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  item.json.bookingDate = new Date().toISOString().split('T')[0]; // today\n  const delivery = new Date();\n  delivery.setDate(delivery.getDate() + 5);\n  item.json.deliveryDate = delivery.toISOString().split('T')[0]; // 5 days later\n  return item;\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        144,
+        0
+      ],
+      "id": "65ec5924-c8e2-4755-9c5e-bfd90a554a35",
+      "name": "Code"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "hemanth-mariserla18.app.n8n.cloud",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36",
+            "content-length": "312",
+            "accept": "*/*",
+            "accept-encoding": "gzip, br",
+            "accept-language": "en-US,en;q=0.9",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-connecting-ip": "103.206.105.83",
+            "cf-ew-via": "15",
+            "cf-ipcountry": "IN",
+            "cf-ray": "9742daa6d3c3ff64-BOM",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-worker": "n8n.cloud",
+            "content-type": "application/json",
+            "origin": "https://preview--voice-to-buy-flow.lovable.app",
+            "priority": "u=1, i",
+            "referer": "https://preview--voice-to-buy-flow.lovable.app/",
+            "sec-ch-ua": "\"Not;A=Brand\";v=\"99\", \"Google Chrome\";v=\"139\", \"Chromium\";v=\"139\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\"",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "cross-site",
+            "x-forwarded-for": "103.206.105.83, 172.69.179.57",
+            "x-forwarded-host": "hemanth-mariserla18.app.n8n.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "traefik-prod-users-gwc-74-67bd674f6f-qhb48",
+            "x-is-trusted": "yes",
+            "x-real-ip": "103.206.105.83"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "product": "t-shirt I want to order",
+            "quantity": "4",
+            "color": "I want a red colour",
+            "size": "M",
+            "name": "Hemanth",
+            "address": "Yellamanchili Road, Atchuthapuram, Visakhaptam, Andha Pradesh, 531011",
+            "phone": "7997207751",
+            "email": "hemanth.mariserla@gmail.com",
+            "timestamp": "2025-08-24T12:29:13.563Z",
+            "orderSource": "voice"
+          },
+          "webhookUrl": "https://hemanth-mariserla18.app.n8n.cloud/webhook-test/27bd26b5-0c53-4813-a356-bad56b1f3b10",
+          "executionMode": "test"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "AI Transform",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Transform": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "executionTimeout": -1,
+    "errorWorkflow": "b5zVC1lNsi7SOP0C",
+    "timeSavedPerExecution": 5
+  },
+  "versionId": "be22f76f-dbcf-443a-999b-505c7d21a214",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e917b34f45b43a81c0ec5bc37bcc76c382ad01873c0334b458a792e781f0bedc"
+  },
+  "id": "b5zVC1lNsi7SOP0C",
+  "tags": []
+}
