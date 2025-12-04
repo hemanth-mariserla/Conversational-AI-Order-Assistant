@@ -2,7 +2,7 @@
 
 ## Project info
 
-**URL**: https://lovable.dev/projects/1a07059b-ca8d-430f-bf6a-66030b7aa8f9
+**URL**: https://voice-to-buy-flow.lovable.app
 
 ## How can I edit this code?
 
